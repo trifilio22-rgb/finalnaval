@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Entrenamiento Final - Matemática (Escuela Naval Militar - Ciclo Lectivo 2026)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- KaTeX para renderizado matemático -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            naval: {
+              deep: '#0A192F',
+              slate: '#112240',
+              steel: '#1E3A8A',
+              gold: '#D4AF37',
+              goldLight: '#F3E5AB',
+              surface: '#F8FAFC'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+    .katex { font-size: 1.08em; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #E2E8F0; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 3px; }
+    .tab-active {
+      background-color: #1E3A8A;
+      color: #FFFFFF;
+      border-bottom: 3px solid #D4AF37;
+    }
+    .tab-inactive {
+      background-color: #112240;
+      color: #CBD5E1;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-inactive:hover {
+      background-color: #1B3358;
+      color: #FFFFFF;
+    }
+    input[type="text"], select {
+      transition: all 0.15s ease-in-out;
+    }
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: #1E3A8A;
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade { animation: fadeIn 0.25s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- NOTIFICACIÓN FLOTANTE (Reemplaza alert) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- HEADER INSTITUCIONAL -->
+  <header class="bg-naval-deep text-white shadow-xl border-b-2 border-naval-gold sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <!-- Emblema + Título -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-xl bg-naval-slate border border-naval-gold/60 flex items-center justify-center shrink-0 shadow-inner">
+          <!-- Escudo / Ancla Naval SVG Minimalista -->
+          <svg class="w-8 h-8 text-naval-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2.5"/>
+            <line x1="12" y1="7.5" x2="12" y2="21"/>
+            <line x1="8" y1="11" x2="16" y2="11"/>
+            <path d="M5 14c0 4.5 3.1 7 7 7s7-2.5 7-7"/>
+            <polyline points="3 15 5 13 7 15"/>
+            <polyline points="17 15 19 13 21 15"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold tracking-widest uppercase text-naval-gold">Escuela Naval Militar</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-naval-steel text-blue-100 font-medium">Ciclo Lectivo 2026</span>
+          </div>
+          <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white">
+            Aula de Entrenamiento Final — Matemática
+          </h1>
+        </div>
+      </div>
+
+      <!-- Barra de Progreso Global + Botón Descargar -->
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="bg-naval-slate px-3.5 py-2 rounded-xl border border-slate-700/80 min-w-[200px] flex-1 sm:flex-initial">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-300 font-medium">Progreso de Entrenamiento</span>
+            <span id="global-progress-text" class="text-naval-gold font-bold">0%</span>
+          </div>
+      <!-- Barra de Progreso Global -->
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="bg-naval-slate px-3.5 py-2 rounded-xl border border-slate-700/80 min-w-[220px] flex-1 sm:flex-initial">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-300 font-medium">Progreso de Entrenamiento</span>
+            <span id="global-progress-text" class="text-naval-gold font-bold">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div id="global-progress-bar" class="bg-gradient-to-r from-amber-500 to-naval-gold h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN POR MODOS (PESTAÑAS) -->
+    <nav class="bg-naval-slate border-t border-slate-800">
+      <div class="max-w-7xl mx-auto px-2 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-1 pt-1">
+        <button id="tab-btn-1" onclick="switchMode(1)" class="tab-active px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer">
+          <span>1. Encuentros Guiados</span>
+        </button>
+        <button id="tab-btn-2" onclick="switchMode(2)" class="tab-inactive px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer">
+          <span>2. Ejercicios Espejo (Infinito)</span>
+        </button>
+        <button id="tab-btn-3" onclick="switchMode(3)" class="tab-inactive px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer">
+          <span>3. Teoría V/F (20 Ítems)</span>
+        </button>
+        <button id="tab-btn-4" onclick="switchMode(4)" class="tab-inactive px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer">
+          <span>4. Simulacro Cronometrado</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- ========================================================= -->
+    <!-- MODO 1: ENTRENAMIENTO GUIADO POR ENCUENTROS (SIMULACRO)   -->
+    <!-- ========================================================= -->
+    <section id="mode-1" class="animate-fade space-y-6">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-naval-deep">Entrenamiento Guiado por Encuentros (Guía Base)</h2>
+          <p class="text-sm text-slate-600 mt-1">Resolvé paso a paso los 7 ejercicios estructurados en los 3 encuentros de preparación. Podés ingresar fracciones (ej: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-naval-steel font-mono">-3/4</code>) o decimales.</p>
+        </div>
+        <!-- Selector de Encuentros -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="filterEncounter('all')" id="enc-btn-all" class="enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-naval-steel text-white shadow-sm cursor-pointer">Todos (7)</button>
+          <button onclick="filterEncounter(1)" id="enc-btn-1" class="enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Encuentro 1 (Ej. 1-3)</button>
+          <button onclick="filterEncounter(2)" id="enc-btn-2" class="enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Encuentro 2 (Ej. 4-6)</button>
+          <button onclick="filterEncounter(3)" id="enc-btn-3" class="enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Encuentro 3 (Ej. 7)</button>
+        </div>
+      </div>
+
+      <div id="guided-exercises-container" class="space-y-6"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODO 2: GENERADOR DINÁMICO DE EJERCICIOS ESPEJO           -->
+    <!-- ========================================================= -->
+    <section id="mode-2" class="hidden animate-fade space-y-6">
+      <div class="bg-gradient-to-r from-naval-deep to-naval-slate text-white rounded-2xl p-6 shadow-md border border-naval-gold/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-naval-gold">Entrenamiento Adaptativo</span>
+          <h2 class="text-xl font-bold mt-0.5">Generador Dinámico de Ejercicios Espejo</h2>
+          <p class="text-sm text-slate-300 mt-1">Generá variantes nuevas con la misma estructura pedagógica del examen final para afianzar el procedimiento sin memorizar resultados.</p>
+        </div>
+        <button onclick="regenerateAllMirrors()" class="px-5 py-3 rounded-xl bg-naval-gold hover:bg-amber-400 text-naval-deep font-bold text-sm shadow-lg flex items-center gap-2 transition cursor-pointer shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Generar Nueva Variante Completa</span>
+        </button>
+      </div>
+
+      <div id="mirror-exercises-container" class="space-y-6"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODO 3: BLOQUE TEÓRICO V/F INTERACTIVO (20 ÍTEMS)         -->
+    <!-- ========================================================= -->
+    <section id="mode-3" class="hidden animate-fade space-y-6">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-naval-deep">Bloque Teórico: Razonamiento Conceptual (20 Proposiciones)</h2>
+          <p class="text-sm text-slate-600 mt-1">Indicá si cada afirmación es <strong>Verdadera (V)</strong> o <strong>Falsa (F)</strong>. Si seleccionás <strong>Falsa</strong>, deberás elegir la formulación o justificación formal correcta, tal como exige el examen final.</p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="bg-slate-100 px-4 py-2 rounded-xl text-center border border-slate-200">
+            <span class="block text-xs text-slate-500 font-semibold">Puntaje Teoría</span>
+            <span id="theory-score-badge" class="text-lg font-extrabold text-naval-steel">0 / 20</span>
+          </div>
+          <button onclick="resetTheory()" class="px-3.5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition cursor-pointer">Reiniciar</button>
+        </div>
+      </div>
+
+      <div id="theory-container" class="grid grid-cols-1 gap-4"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODO 4: SIMULACRO CRONOMETRADO TIPO EXAMEN FINAL          -->
+    <!-- ========================================================= -->
+    <section id="mode-4" class="hidden animate-fade space-y-6">
+      <!-- Pantalla de inicio del simulacro -->
+      <div id="exam-intro-card" class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 max-w-3xl mx-auto text-center space-y-5">
+        <div class="w-16 h-16 rounded-2xl bg-naval-deep text-naval-gold mx-auto flex items-center justify-center shadow-lg">
+          <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-extrabold text-naval-deep">Simulacro Cronometrado — Instancia Final</h2>
+        <p class="text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
+          Evaluación integral sobre <strong>10 puntos</strong> (<strong>5 pts Práctica</strong> + <strong>5 pts Teoría</strong>) respetando la grilla oficial de calificación de la Escuela Naval Militar. Disponés de <strong>90 minutos</strong>.
+        </p>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left text-xs sm:text-sm space-y-2 max-w-xl mx-auto">
+          <p class="font-bold text-naval-deep">Distribución Oficial del Puntaje:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono text-xs">
+            <div class="bg-white p-1.5 rounded border">Ej.1: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.2a: 1.00p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.2b: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.3a: 0.25p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.3b: 0.25p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.4: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.5: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.6a: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.6b: 0.50p</div>
+            <div class="bg-white p-1.5 rounded border">Ej.7: 0.50p</div>
+          </div>
+          <p class="text-slate-600 pt-1">+ 10 ítems teóricos de <strong>0.50 puntos</strong> cada uno (Total: 10.00 puntos — Nota mínima de aprobación: <strong>4.00 / 6.00 según régimen</strong>).</p>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="startTimedExam()" class="px-8 py-3.5 rounded-xl bg-naval-steel hover:bg-blue-800 text-white font-bold text-base shadow-lg transition cursor-pointer">
+            Iniciar Evaluación Cronometrada
+          </button>
+        </div>
+      </div>
+
+      <!-- Interfaz activa del examen -->
+      <div id="exam-active-area" class="hidden space-y-6">
+        <!-- Barra superior fija del examen -->
+        <div class="bg-naval-deep text-white rounded-2xl p-4 shadow-lg border border-naval-gold/50 flex flex-wrap items-center justify-between gap-4 sticky top-[76px] z-30">
+          <div class="flex items-center gap-3">
+            <span class="px-3 py-1 rounded-lg bg-naval-gold text-naval-deep font-extrabold text-xs uppercase">En Curso</span>
+            <span class="text-sm font-semibold">Simulacro Final Integrador (10 Pts)</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-naval-slate px-4 py-1.5 rounded-xl border border-slate-700">
+              <svg class="w-4 h-4 text-naval-gold" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span id="exam-timer" class="font-mono font-bold text-lg text-amber-300">90:00</span>
+            </div>
+            <button onclick="finishTimedExam()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow transition cursor-pointer">
+              Entregar Examen
+            </button>
+          </div>
+        </div>
+
+        <!-- Boletín de Resultados (oculto hasta entregar) -->
+        <div id="exam-report-card" class="hidden"></div>
+
+        <!-- Contenedor de ejercicios del examen -->
+        <div id="exam-questions-container" class="space-y-6"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER INSTITUCIONAL -->
+  <footer class="bg-naval-deep text-slate-400 text-xs py-5 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>Escuela Naval Militar — Departamento de Ciencias Básicas / Cátedra de Matemática (2026)</p>
+      <p class="text-slate-500">Simulador Académico Autónomo — Uso Educativo para Cadetes</p>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE LA APLICACIÓN (PARSER MATEMÁTICO, GENERADORES Y RENDERIZADO) -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. UTILIDADES MATEMÁTICAS Y PARSER DE FRACCIONES / DECIMALES
+    // =========================================================================
+    function parseMathInput(str) {
+      if (str === null || str === undefined) return NaN;
+      let cleaned = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+      if (cleaned === '') return NaN;
+      // Soporte para raíz cuadrada simple ej: sqrt(2) o √2
+      cleaned = cleaned.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)');
+      cleaned = cleaned.replace(/sqrt\(([^)]+)\)/gi, 'Math.sqrt($1)');
+      // Si es una fracción simple a/b
+      if (/^[+-]?\d+(\.\d+)?\/[+-]?\d+(\.\d+)?$/.test(cleaned)) {
+        const parts = cleaned.split('/');
+        const den = parseFloat(parts[1]);
+        if (den === 0) return NaN;
+        return parseFloat(parts[0]) / den;
+      }
+      // Si es número directo
+      if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(cleaned)) {
+        return parseFloat(cleaned);
+      }
+      // Evaluación segura de expresiones aritméticas simples (+, -, *, /, sqrt)
+      if (/^[0-9+\-*/().Mathsqrt]+$/.test(cleaned)) {
+        try {
+          const val = Function('"use strict"; return (' + cleaned + ')')();
+          return typeof val === 'number' && isFinite(val) ? val : NaN;
+        } catch (e) {
+          return NaN;
+        }
+      }
+      return NaN;
+    }
+
+    function isClose(userStr, expectedVal, tol = 0.06) {
+      const parsed = parseMathInput(userStr);
+      if (isNaN(parsed)) return false;
+      return Math.abs(parsed - expectedVal) <= tol;
+    }
+
+    function gcd(a, b) {
+      a = Math.abs(Math.round(a));
+      b = Math.abs(Math.round(b));
+      while (b) {
+        let t = b;
+        b = a % b;
+        a = t;
+      }
+      return a || 1;
+    }
+
+    function formatFraction(num, den) {
+      if (den === 0) return 'Indefinido';
+      if (num === 0) return '0';
+      const sign = (num * den < 0) ? '-' : '';
+      const n = Math.abs(Math.round(num));
+      const d = Math.abs(Math.round(den));
+      const g = gcd(n, d);
+      const sn = n / g;
+      const sd = d / g;
+      return sd === 1 ? `${sign}${sn}` : `${sign}\\frac{${sn}}{${sd}}`;
+    }
+
+    function formatSignedTerm(val, variable = '') {
+      if (val === 0) return '';
+      const sign = val > 0 ? '+' : '-';
+      const absVal = Math.abs(val);
+      if (variable && absVal === 1) return `${sign} ${variable}`;
+      return `${sign} ${absVal}${variable}`;
+    }
+
+    function renderKaTeXInElement(el) {
+      if (typeof renderMathInElement === 'function' && el) {
+        renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-700 text-white border-emerald-400',
+        error: 'bg-rose-700 text-white border-rose-400',
+        info: 'bg-naval-deep text-white border-naval-gold'
+      };
+      toast.className = `px-4 py-3 rounded-xl shadow-xl border text-xs sm:text-sm font-semibold animate-fade pointer-events-auto ${colors[type] || colors.info}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // =========================================================================
+    // 2. GENERADORES PARAMÉTRICOS DE LOS 7 EJERCICIOS PRÁCTICOS
+    //    (Base = Guía Simulacro; Variantes = Aleatorias evitando datos del final real)
+    // =========================================================================
+    function generateProblemData(exId, isBase = true) {
+      switch (exId) {
+        // EJERCICIO 1: Límite indeterminado 0/0
+        case 1: {
+          // Base: a = 6 -> (x^2 - 36)/(x - 6). Variantes: a en [2, 3, 4, 7, 8, 9] (evitamos 5 que está en examen final)
+          const pool = [2, 3, 4, 7, 8, 9];
+          const a = isBase ? 6 : pool[Math.floor(Math.random() * pool.length)];
+          const a2 = a * a;
+          return {
+            id: 1,
+            encounter: 1,
+            title: 'Análisis de Límites e Indeterminación 0/0',
+            points: '0.50 pts',
+            statement: `Dada la función racional $f(x) = \\dfrac{x^2 - ${a2}}{x - ${a}}$:<br>
+              <strong>a)</strong> Indicar qué sucede con el valor numérico de la función si $x$ toma exactamente el valor $${a}$.<br>
+              <strong>b)</strong> Hallar analíticamente el valor de $\\displaystyle\\lim_{x \\to ${a}} f(x)$ justificando el procedimiento.`,
+            params: { a, a2 },
+            expected: {
+              state: 'indeterminado',
+              limit: 2 * a
+            },
+            hints: [
+              `Reemplazá $x = ${a}$ directamente en el numerador y en el denominador: obtendrás $\\frac{${a}^2 - ${a2}}{${a} - ${a}} = \\frac{0}{0}$.`,
+              `Aplicá diferencia de cuadrados en el numerador: $x^2 - ${a2} = (x - ${a})(x + ${a})$ y simplificá el factor $(x - ${a})$.`
+            ],
+            solutionHTML: `
+              <p><strong>a) En $x = ${a}$:</strong> La función <strong>no está definida</strong> ($${a} \\notin Dom(f)$), ya que al sustituir se produce una indeterminación del tipo $\\frac{0}{0}$.</p>
+              <p class="mt-1"><strong>b) Cálculo del límite:</strong> Factorizando por diferencia de cuadrados:<br>
+              $\\displaystyle\\lim_{x \\to ${a}} \\frac{x^2 - ${a2}}{x - ${a}} = \\lim_{x \\to ${a}} \\frac{(x - ${a})(x + ${a})}{x - ${a}} = \\lim_{x \\to ${a}} (x + ${a}) = ${a} + ${a} = \\mathbf{${2 * a}}$.</p>
+            `
+          };
+        }
+
+        // EJERCICIO 2: Continuidad por tramos + Gráfico
+        case 2: {
+          // Base: x^2 - 3x (x<0), 3 (x=0), -5x + 3 (x>0) -> Lim izq = 0, f(0)=3, Lim der = 3 -> Discontinuidad esencial de salto finito
+          const presets = [
+            { b1: -3, f0: 3, m2: -5, c2: 3, type: 'salto', desc: 'Discontinuidad esencial (salto finito)' },
+            { b1: 2, f0: 4, m2: -3, c2: 4, type: 'salto', desc: 'Discontinuidad esencial (salto finito)' },
+            { b1: -4, f0: 2, m2: -2, c2: 0, type: 'evitable', desc: 'Discontinuidad evitable' },
+            { b1: 3, f0: 2, m2: -4, c2: 2, type: 'continua', desc: 'Continua en x = 0' },
+            { b1: -2, f0: -1, m2: 3, c2: 2, type: 'salto', desc: 'Discontinuidad esencial (salto finito)' }
+          ];
+          const p = isBase ? presets[0] : presets[1 + Math.floor(Math.random() * (presets.length - 1))];
+          const limLeft = 0; // x^2 + b1*x en x->0 es 0
+          const limRight = p.c2;
+          const b1Str = p.b1 >= 0 ? `+ ${p.b1}x` : `- ${Math.abs(p.b1)}x`;
+          const c2Str = p.c2 === 0 ? '' : (p.c2 > 0 ? `+ ${p.c2}` : `- ${Math.abs(p.c2)}`);
+          return {
+            id: 2,
+            encounter: 1,
+            title: 'Estudio de Continuidad por Tramos y Gráfico',
+            points: '1.50 pts (2a: 1p | 2b: 0.5p)',
+            statement: `Dada la siguiente función definida a trozos:<br>
+              $$f(x) = \\begin{cases} x^2 ${b1Str} & \\text{si } x < 0 \\\\ ${p.f0} & \\text{si } x = 0 \\\\ ${p.m2}x ${c2Str} & \\text{si } x > 0 \\end{cases}$$
+              <strong>a)</strong> Analizar la representación gráfica en el plano cartesiano.<br>
+              <strong>b)</strong> Estudiar rigurosamente la continuidad en $x = 0$ verificando las tres condiciones y clasificar.`,
+            params: p,
+            expected: {
+              f0: p.f0,
+              limLeft: limLeft,
+              limRight: limRight,
+              classification: p.type
+            },
+            hints: [
+              `Condición 1: Leé directamente el renglón central de la llave para $x = 0$: $f(0) = ${p.f0}$.`,
+              `Condición 2: Calculá $\\lim_{x \\to 0^-} (x^2 ${b1Str}) = 0$ y $\\lim_{x \\to 0^+} (${p.m2}x ${c2Str}) = ${limRight}$. Si los laterales difieren, no existe el límite ordinario y hay discontinuidad esencial de salto finito.`
+            ],
+            solutionHTML: `
+              <p><strong>1) Existencia de imagen:</strong> $f(0) = ${p.f0}$.</p>
+              <p><strong>2) Límites laterales en $x = 0$:</strong><br>
+              $\\lim_{x \\to 0^-} f(x) = 0^2 ${p.b1 >= 0 ? '+' : '-'} ${Math.abs(p.b1)}(0) = \\mathbf{${limLeft}}$<br>
+              $\\lim_{x \\to 0^+} f(x) = ${p.m2}(0) ${c2Str} = \\mathbf{${limRight}}$</p>
+              <p><strong>3) Conclusión:</strong> ${
+                p.type === 'salto'
+                  ? `Como $\\lim_{x \\to 0^-} f(x) \\neq \\lim_{x \\to 0^+} f(x)$ ($0 \\neq ${limRight}$), no existe $\\lim_{x \\to 0} f(x)$. Se trata de una <strong>Discontinuidad Esencial de Salto Finito</strong> (salto de magnitud $|${limRight} - 0| = ${Math.abs(limRight)}$).`
+                  : p.type === 'evitable'
+                    ? `Los límites laterales coinciden en $0$, por lo que $\\lim_{x \\to 0} f(x) = 0$, pero $f(0) = ${p.f0} \\neq 0$. Es una <strong>Discontinuidad Evitable</strong>.`
+                    : `Se cumplen las 3 condiciones: $f(0) = \\lim_{x \\to 0} f(x) = ${p.f0}$. La función es <strong>Continua en $x = 0$</strong>.`
+              }</p>
+            `
+          };
+        }
+
+        // EJERCICIO 3: Ecuaciones en el Campo Complejo
+        case 3: {
+          // Base: (3 - 3i)z = 12 -> z = 12(3+3i)/18 = 2 + 2i, |z| = sqrt(8) ≈ 2.83
+          // Evitamos (2 - 2i)z = 10 que está en el examen final
+          const variants = [
+            { c: 3, d: -3, rhs: 12 },  // z = 2 + 2i, |z| = 2.83
+            { c: 4, d: -4, rhs: 16 },  // z = 2 + 2i, |z| = 2.83
+            { c: 1, d: -1, rhs: 6 },   // z = 3 + 3i, |z| = 4.24
+            { c: 3, d: 4, rhs: 25 },   // z = 3 - 4i, |z| = 5
+            { c: 4, d: -3, rhs: 25 },  // z = 4 + 3i, |z| = 5
+            { c: 1, d: 2, rhs: 10 }    // z = 2 - 4i, |z| = 4.47
+          ];
+          const v = isBase ? variants[0] : variants[1 + Math.floor(Math.random() * (variants.length - 1))];
+          const denom = v.c * v.c + v.d * v.d;
+          const a = (v.rhs * v.c) / denom;
+          const b = (-v.rhs * v.d) / denom;
+          const mod = Math.hypot(a, b);
+          const signD = v.d >= 0 ? `+ ${v.d}i` : `- ${Math.abs(v.d)}i`;
+          const conjSignD = v.d >= 0 ? `- ${v.d}i` : `+ ${Math.abs(v.d)}i`;
+          return {
+            id: 3,
+            encounter: 1,
+            title: 'Ecuaciones en el Campo de los Números Complejos',
+            points: '0.50 pts',
+            statement: `Obtener la solución exacta para la variable compleja $z$ en la siguiente ecuación:<br>
+              $$(${v.c} ${signD}) z = ${v.rhs}$$
+              Expresar el resultado en forma binómica $z = a + bi$ y calcular su módulo $|z|$.`,
+            params: { ...v, a, b, mod },
+            expected: { a, b, mod },
+            hints: [
+              `Despejá $z = \\frac{${v.rhs}}{${v.c} ${signD}}$ y multiplicá numerador y denominador por el conjugado $(${v.c} ${conjSignD})$.`,
+              `Recordá que $(c + di)(c - di) = c^2 + d^2 = ${denom}$, y que el módulo se calcula como $|z| = \\sqrt{a^2 + b^2}$.`
+            ],
+            solutionHTML: `
+              <p><strong>1) Despeje multiplicando por el conjugado:</strong><br>
+              $z = \\dfrac{${v.rhs}}{${v.c} ${signD}} \\cdot \\dfrac{${v.c} ${conjSignD}}{${v.c} ${conjSignD}} = \\dfrac{${v.rhs}(${v.c} ${conjSignD})}{${v.c}^2 + (${v.d})^2} = \\dfrac{${v.rhs * v.c} ${v.rhs * (-v.d) >= 0 ? '+' : '-'} ${Math.abs(v.rhs * v.d)}i}{${denom}} = \\mathbf{${a} ${b >= 0 ? '+' : '-'} ${Math.abs(b)}i}$</p>
+              <p class="mt-1"><strong>2) Cálculo del módulo:</strong><br>
+              $|z| = \\sqrt{(${a})^2 + (${b})^2} = \\sqrt{${a * a + b * b}} \\approx \\mathbf{${mod.toFixed(2)}}$</p>
+            `
+          };
+        }
+
+        // EJERCICIO 4: Coordenadas Polares y Triángulos
+        case 4: {
+          // Base: A(4.24; 45°) -> (3, 3) y B(3, 0). OA=4.24, OB=3, AB=3 -> Triángulo Rectángulo Isósceles
+          // Evitamos A(3.16; 71.57°) y B(3,1) del examen final
+          const cases = [
+            { r: 4.24, deg: 45, ax: 3, ay: 3, bx: 3, by: 0, sides: 'isosceles', angles: 'rectangulo', desc: 'Isósceles y Rectángulo (en B)' },
+            { r: 5.00, deg: 53.13, ax: 3, ay: 4, bx: 3, by: 0, sides: 'escaleno', angles: 'rectangulo', desc: 'Escaleno y Rectángulo (en B)' },
+            { r: 5.66, deg: 45, ax: 4, ay: 4, bx: 4, by: 0, sides: 'isosceles', angles: 'rectangulo', desc: 'Isósceles y Rectángulo (en B)' },
+            { r: 5.00, deg: 36.87, ax: 4, ay: 3, bx: 5, by: 0, sides: 'isosceles', angles: 'acutangulo', desc: 'Isósceles (OA = OB = 5) y Acutángulo' }
+          ];
+          const c = isBase ? cases[0] : cases[1 + Math.floor(Math.random() * (cases.length - 1))];
+          const normOB = Math.hypot(c.bx, c.by);
+          return {
+            id: 4,
+            encounter: 2,
+            title: 'Coordenadas Polares, Geometría Vectorial y Triángulos',
+            points: '0.50 pts (4a: 0.25p | 4b: 0.25p)',
+            statement: `Dados los puntos en el plano $A(${c.r};\\; ${c.deg}^\\circ)$ expresado en coordenadas polares, y $B(${c.bx},\\; ${c.by})$ en coordenadas cartesianas (con $O(0,0)$):<br>
+              <strong>a)</strong> Convertir $A$ a coordenadas cartesianas $(x_A, y_A)$ y clasificar el triángulo $\\triangle AOB$ según sus lados y ángulos.<br>
+              <strong>b)</strong> Determinar el vector unitario paralelo (mismo sentido) al vector $\\vec{OB}$.`,
+            params: c,
+            expected: {
+              ax: c.ax,
+              ay: c.ay,
+              sides: c.sides,
+              angles: c.angles,
+              ux: c.bx / normOB,
+              uy: c.by / normOB
+            },
+            hints: [
+              `Para pasar $A(r; \\theta)$ a cartesianas: $x_A = r \\cdot \\cos(\\theta)$ e $y_A = r \\cdot \\sin(\\theta)$. Redondeá al entero más cercano.`,
+              `Calculá las longitudes de los tres lados: $OA = r$, $OB = \\sqrt{x_B^2 + y_B^2}$ y $AB = \\sqrt{(x_B-x_A)^2 + (y_B-y_A)^2}$. Para el versor paralelo a $\\vec{OB}$, dividí sus componentes por $|\\vec{OB}|$.`
+            ],
+            solutionHTML: `
+              <p><strong>a) Conversión y clasificación:</strong><br>
+              $x_A = ${c.r} \\cdot \\cos(${c.deg}^\\circ) \\approx \\mathbf{${c.ax}}$, $\\quad y_A = ${c.r} \\cdot \\sin(${c.deg}^\\circ) \\approx \\mathbf{${c.ay}} \\implies A(${c.ax}, ${c.ay})$.<br>
+              Longitudes: $OA \\approx ${c.r}$, $OB = ${normOB}$, $AB = ${Math.hypot(c.bx - c.ax, c.by - c.ay).toFixed(2)}$.<br>
+              Clasificación: Triángulo <strong>${c.desc}</strong>.</p>
+              <p class="mt-1"><strong>b) Vector unitario paralelo a $\\vec{OB} = (${c.bx}, ${c.by})$:</strong><br>
+              $\\hat{u} = \\dfrac{\\vec{OB}}{|\\vec{OB}|} = \\left(${c.bx / normOB},\\; ${c.by / normOB}\\right)$.</p>
+            `
+          };
+        }
+
+        // EJERCICIO 5: Ecuación de la Recta Perpendicular
+        case 5: {
+          // Base: pasa por P(2, 5) y perpendicular a 3y = 4x + 6 -> m_dada = 4/3 -> m_perp = -3/4 -> y - 5 = -3/4(x - 2) -> y = -3/4 x + 13/2
+          const variants = [
+            { px: 2, py: 5, cy: 3, cx: 4, cc: 6 },     // m_dada = 4/3, m_perp = -3/4, b = 6.5 (13/2)
+            { px: 4, py: 1, cy: 2, cx: 4, cc: -6 },    // m_dada = 2, m_perp = -1/2, b = 3
+            { px: -3, py: 4, cy: 5, cx: 3, cc: 10 },   // m_dada = 3/5, m_perp = -5/3, b = -1
+            { px: 6, py: -2, cy: 3, cx: -2, cc: 9 },   // m_dada = -2/3, m_perp = 3/2, b = -11
+            { px: 2, py: -1, cy: 4, cx: 2, cc: 8 }     // m_dada = 1/2, m_perp = -2, b = 3
+          ];
+          const v = isBase ? variants[0] : variants[1 + Math.floor(Math.random() * (variants.length - 1))];
+          const mGiven = v.cx / v.cy;
+          const mPerp = -v.cy / v.cx;
+          const bPerp = v.py - mPerp * v.px;
+          const cSign = v.cc >= 0 ? `+ ${v.cc}` : `- ${Math.abs(v.cc)}`;
+          return {
+            id: 5,
+            encounter: 2,
+            title: 'Ecuación de la Recta Perpendicular',
+            points: '0.50 pts',
+            statement: `Hallar la ecuación explícita $y = m_{\\perp} x + b$ de la recta $L_1$ que pasa por el punto $P(${v.px},\\; ${v.py})$ y es perpendicular a la recta dada por la ecuación:<br>
+              $$${v.cy}y = ${v.cx}x ${cSign}$$`,
+            params: { ...v, mGiven, mPerp, bPerp },
+            expected: { mGiven, mPerp, bPerp },
+            hints: [
+              `Primero despejá $y$ de la recta dato para identificar su pendiente $m$: $y = ${formatFraction(v.cx, v.cy)}x ${v.cc >= 0 ? '+' : ''} ${formatFraction(v.cc, v.cy)}$.`,
+              `Por condición de perpendicularidad, $m_{\\perp} = -\\dfrac{1}{m} = ${formatFraction(-v.cy, v.cx)}$. Luego sustituí el punto $P(${v.px}, ${v.py})$ en $y = m_{\\perp} x + b$ para hallar $b$.`
+            ],
+            solutionHTML: `
+              <p><strong>1) Pendiente de la recta dada:</strong> Despejando $y$: $y = ${formatFraction(v.cx, v.cy)}x ${v.cc >= 0 ? '+' : ''} ${formatFraction(v.cc, v.cy)} \\implies m = ${formatFraction(v.cx, v.cy)}$.</p>
+              <p><strong>2) Pendiente perpendicular:</strong> $m_{\\perp} = -\\dfrac{1}{m} = \\mathbf{${formatFraction(-v.cy, v.cx)}}$.</p>
+              <p><strong>3) Ordenada al origen pasando por $P(${v.px}, ${v.py})$:</strong><br>
+              $${v.py} = \\left(${formatFraction(-v.cy, v.cx)}\\right)(${v.px}) + b \\implies b = \\mathbf{${formatFraction(v.py * v.cx + v.cy * v.px, v.cx)}}$ (${bPerp.toFixed(2)}).<br>
+              Ecuación explícita: $y = ${formatFraction(-v.cy, v.cx)}x ${bPerp >= 0 ? '+' : ''} ${formatFraction(v.py * v.cx + v.cy * v.px, v.cx)}$.</p>
+            `
+          };
+        }
+
+        // EJERCICIO 6: Ángulo entre Vectores y Producto Escalar
+        case 6: {
+          // Base: u = (4, -5) y v = (5/4, 1) -> u·v = 5 - 5 = 0 -> 90° (Ortogonales)
+          const cases = [
+            { ux: 4, uy: -5, vxStr: '5/4', vyStr: '1', vx: 1.25, vy: 1, dot: 0, angle: 90, reason: 'ortogonales' },
+            { ux: 3, uy: -4, vxStr: '4/3', vyStr: '1', vx: 4/3, vy: 1, dot: 0, angle: 90, reason: 'ortogonales' },
+            { ux: 6, uy: -2, vxStr: '1/3', vyStr: '1', vx: 1/3, vy: 1, dot: 0, angle: 90, reason: 'ortogonales' },
+            { ux: 2, uy: 2, vxStr: '0', vyStr: '5', vx: 0, vy: 5, dot: 10, angle: 45, reason: 'agudo' },
+            { ux: -3, uy: 3, vxStr: '4', vyStr: '0', vx: 4, vy: 0, dot: -12, angle: 135, reason: 'obtuso' }
+          ];
+          const c = isBase ? cases[0] : cases[1 + Math.floor(Math.random() * (cases.length - 1))];
+          return {
+            id: 6,
+            encounter: 2,
+            title: 'Producto Escalar y Ángulo entre Vectores',
+            points: '1.00 pt (6a: 0.5p | 6b: 0.5p)',
+            statement: `Dados los vectores $\\vec{u} = (${c.ux},\\; ${c.uy})$ y $\\vec{v} = \\left(${c.vxStr},\\; ${c.vyStr}\\right)$ en el plano:<br>
+              <strong>a)</strong> Calcular el producto escalar $\\vec{u} \\cdot \\vec{v}$ y determinar el ángulo $\\alpha$ (en grados) que forman.<br>
+              <strong>b)</strong> Seleccionar la justificación analítica correcta.`,
+            params: c,
+            expected: {
+              dot: c.dot,
+              angle: c.angle,
+              reason: c.reason
+            },
+            hints: [
+              `El producto escalar en componentes es $\\vec{u} \\cdot \\vec{v} = u_x \\cdot v_x + u_y \\cdot v_y = (${c.ux})\\cdot(${c.vxStr}) + (${c.uy})\\cdot(${c.vyStr})$.`,
+              `Si $\\vec{u} \\cdot \\vec{v} = 0$ (con vectores no nulos), los vectores son ortogonales y forman un ángulo de $90^\\circ$. En general: $\\cos(\\alpha) = \\dfrac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}|\\,|\\vec{v}|}$.`
+            ],
+            solutionHTML: `
+              <p><strong>a) Producto escalar:</strong><br>
+              $\\vec{u} \\cdot \\vec{v} = (${c.ux})\\left(${c.vxStr}\\right) + (${c.uy})(${c.vyStr}) = ${c.ux * c.vx} + (${c.uy * c.vy}) = \\mathbf{${c.dot}}$.</p>
+              <p class="mt-1"><strong>b) Ángulo y justificación:</strong><br>
+              ${c.dot === 0
+                ? `Como $\\vec{u} \\cdot \\vec{v} = 0$ y ambos vectores son no nulos, son <strong>ortogonales (perpendiculares)</strong>, por lo que $\\alpha = \\mathbf{90^\\circ}$.`
+                : `$\\cos(\\alpha) = \\dfrac{${c.dot}}{|\\vec{u}|\\,|\\vec{v}|} \\implies \\alpha = \\mathbf{${c.angle}^\\circ}$.`}</p>
+            `
+          };
+        }
+
+        // EJERCICIO 7: Álgebra Matricial (kB - A = I  =>  A = kB - I)
+        case 7: {
+          // Base: k = 2, B = [[-2, 4], [3, 1/3]] -> A = 2B - I = [[-5, 8], [6, -1/3]]
+          const presets = [
+            { k: 2, b11: -2, b12: 4, b21: 3, b22Str: '1/3', b22: 1/3 },
+            { k: 2, b11: 3, b12: -2, b21: 4, b22Str: '3/2', b22: 1.5 },
+            { k: 3, b11: 2, b12: -1, b21: 4, b22Str: '2/3', b22: 2/3 },
+            { k: 2, b11: -3, b12: 5, b21: -1, b22Str: '5/2', b22: 2.5 }
+          ];
+          const p = isBase ? presets[0] : presets[1 + Math.floor(Math.random() * (presets.length - 1))];
+          const a11 = p.k * p.b11 - 1;
+          const a12 = p.k * p.b12;
+          const a21 = p.k * p.b21;
+          const a22 = p.k * p.b22 - 1;
+          return {
+            id: 7,
+            encounter: 3,
+            title: 'Ecuaciones Matriciales y Operaciones Elementales',
+            points: '0.50 pts',
+            statement: `Dada la matriz $B = \\begin{pmatrix} ${p.b11} & ${p.b12} \\\\ ${p.b21} & ${p.b22Str} \\end{pmatrix}$, hallar la matriz $A$ que verifica la relación matricial:<br>
+              $$${p.k}B - A = I$$
+              donde $I = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$ representa la matriz identidad de orden 2.`,
+            params: p,
+            expected: { a11, a12, a21, a22 },
+            hints: [
+              `Despejá la matriz $A$ de la ecuación: si $${p.k}B - A = I$, entonces $A = ${p.k}B - I$.`,
+              `Multiplicá cada elemento de $B$ por el escalar $${p.k}$ y luego restale $1$ únicamente a los elementos de la diagonal principal ($a_{11}$ y $a_{22}$).`
+            ],
+            solutionHTML: `
+              <p><strong>Despeje algebraico:</strong> $${p.k}B - A = I \\implies A = ${p.k}B - I$.</p>
+              <p class="mt-1">$$A = ${p.k}\\begin{pmatrix} ${p.b11} & ${p.b12} \\\\ ${p.b21} & ${p.b22Str} \\end{pmatrix} - \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} = \\begin{pmatrix} ${p.k * p.b11} - 1 & ${p.k * p.b12} - 0 \\\\ ${p.k * p.b21} - 0 & ${(p.k * p.b22).toFixed(2)} - 1 \\end{pmatrix} = \\mathbf{\\begin{pmatrix} ${a11} & ${a12} \\\\ ${a21} & ${Number.isInteger(a22) ? a22 : a22.toFixed(2)} \\end{pmatrix}}$$</p>
+            `
+          };
+        }
+      }
+    }
+
+    // =========================================================================
+    // 3. BANCO DE 20 PROPOSICIONES TEÓRICAS (10 SIMULACRO + 10 EXAMEN FINAL)
+    // =========================================================================
+    const THEORY_QUESTIONS = [
+      // --- 10 del Simulacro ---
+      {
+        id: 1,
+        source: 'Simulacro',
+        statement: 'Si la conversión polar a cartesiana de un punto en $\\mathbb{R}^2$ arroja $x < 0$ e $y > 0$, el argumento principal del punto se ubica estrictamente en el II Cuadrante.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. En el plano cartesiano, el semiplano $x < 0$ (izquierda) intersección $y > 0$ (arriba) corresponde exactamente al II Cuadrante ($90^\\circ < \\theta < 180^\\circ$).'
+      },
+      {
+        id: 2,
+        source: 'Simulacro',
+        statement: 'La condición necesaria y suficiente para que una matriz cuadrada $A$ sea invertible es que su determinante sea distinto de cero ($\\det(A) \\neq 0$).',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Una matriz cuadrada $A$ admite inversa $A^{-1}$ si y solo si es regular (no singular), es decir, $\\det(A) \\neq 0$.'
+      },
+      {
+        id: 3,
+        source: 'Simulacro',
+        statement: 'Dos rectas en el plano cartesiano son perpendiculares si y solo si el producto escalar de sus respectivos vectores directores es igual a cero.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Si $\\vec{d}_1$ y $\\vec{d}_2$ son los vectores directores (no nulos) de ambas rectas, $\\vec{d}_1 \\cdot \\vec{d}_2 = 0 \\iff \\vec{d}_1 \\perp \\vec{d}_2$.'
+      },
+      {
+        id: 4,
+        source: 'Simulacro',
+        statement: 'Si el escalar $t$ en la ecuación vectorial de la recta $(x,y) = P_0 + t\\vec{v}$ se restringe al intervalo $[0, 1]$, la ecuación define un segmento de recta acotado entre dos puntos.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Para $t = 0$ se obtiene el punto inicial $P_0$, para $t = 1$ el punto final $P_1 = P_0 + \\vec{v}$, y para $0 < t < 1$ todos los puntos interiores del segmento $\\overline{P_0P_1}$.'
+      },
+      {
+        id: 5,
+        source: 'Simulacro',
+        statement: 'El módulo de la suma de dos vectores en $\\mathbb{R}^3$ es siempre estrictamente mayor que la suma de los módulos individuales de dichos vectores ($\\|\\vec{u} + \\vec{v}\\| > \\|\\vec{u}\\| + \\|\\vec{v}\\|$).',
+        isTrue: false,
+        correctOption: 0,
+        options: [
+          'Por la Desigualdad Triangular, el módulo de la suma es menor o igual que la suma de los módulos: $\\|\\vec{u} + \\vec{v}\\| \\le \\|\\vec{u}\\| + \\|\\vec{v}\\|$.',
+          'El módulo de la suma de dos vectores es siempre igual a la diferencia de sus módulos.',
+          'La desigualdad estricta solo se cumple cuando los vectores son ortogonales entre sí.'
+        ],
+        explanation: 'FALSO. La propiedad fundamental (Desigualdad Triangular) establece que $\\|\\vec{u} + \\vec{v}\\| \\le \\|\\vec{u}\\| + \\|\\vec{v}\\|$, dándose la igualdad únicamente cuando tienen la misma dirección y sentido.'
+      },
+      {
+        id: 6,
+        source: 'Simulacro',
+        statement: 'El módulo de un vector en $\\mathbb{R}^n$ es por definición una magnitud escalar no negativa ($\\|\\vec{v}\\| \\ge 0$), siendo cero únicamente para el vector nulo.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Es el axioma de positividad definida de la norma euclídea: $\\|\\vec{v}\\| \\ge 0$ y $\\|\\vec{v}\\| = 0 \\iff \\vec{v} = \\vec{0}$.'
+      },
+      {
+        id: 7,
+        source: 'Simulacro',
+        statement: 'La existencia del límite $\\displaystyle\\lim_{x \\to a} f(x) = L$ depende únicamente del comportamiento de la función en el entorno reducido del punto $x = a$ y no del valor de $f(a)$.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. La definición formal de límite exige $0 < |x - a| < \\delta$, excluyendo explícitamente el punto $x = a$. La función puede no estar definida en $a$ y aun así tener límite.'
+      },
+      {
+        id: 8,
+        source: 'Simulacro',
+        statement: 'Si una función posee límites laterales finitos pero distintos en $x = a$ ($\\lim_{x \\to a^-} f(x) \\neq \\lim_{x \\to a^+} f(x)$), la función admite una discontinuidad evitable en ese punto.',
+        isTrue: false,
+        correctOption: 1,
+        options: [
+          'En ese caso la función es continua por izquierda y por derecha simultáneamente.',
+          'Cuando los límites laterales son finitos y distintos, no existe el límite ordinario y la discontinuidad es esencial de salto finito.',
+          'La discontinuidad es evitable únicamente cuando ambos límites laterales tienden a infinito.'
+        ],
+        explanation: 'FALSO. Si los límites laterales son finitos pero distintos, no existe $\\lim_{x \\to a} f(x)$, por lo que la discontinuidad no puede removerse: es una discontinuidad esencial de salto finito.'
+      },
+      {
+        id: 9,
+        source: 'Simulacro',
+        statement: 'Una discontinuidad es evitable (o removible) cuando el límite finito de la función en el punto existe, pero difiere del valor numérico $f(a)$ o este último no existe.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Basta redefinir $f(a) = \\lim_{x \\to a} f(x)$ para "reparar" la continuidad en dicho punto.'
+      },
+      {
+        id: 10,
+        source: 'Simulacro',
+        statement: 'Si una función es continua en un punto $x = a$, entonces la imagen $f(a)$ existe y coincide exactamente con el valor del límite ordinario $\\lim_{x \\to a} f(x)$.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Es la síntesis de las tres condiciones de continuidad en un punto: $\\exists f(a)$, $\\exists \\lim_{x \\to a} f(x)$ finito, y ambos valores son iguales.'
+      },
+      // --- 10 del Examen Final ---
+      {
+        id: 11,
+        source: 'Modelo Final',
+        statement: 'Dado un punto $P(r, \\theta)$ expresado en coordenadas polares, sus coordenadas cartesianas se obtienen mediante las expresiones $x = r\\cos\\theta$ e $y = r\\sin\\theta$.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Son las ecuaciones trigonométricas directas de transformación de coordenadas polares $(r, \\theta)$ a rectangulares $(x, y)$.'
+      },
+      {
+        id: 12,
+        source: 'Modelo Final',
+        statement: 'Una matriz cuadrada admite inversa siempre que todos los elementos de su diagonal principal sean distintos de cero.',
+        isTrue: false,
+        correctOption: 0,
+        options: [
+          'Una matriz cuadrada admite inversa si y solo si su determinante es distinto de cero ($\\det(A) \\neq 0$); tener diagonal no nula no garantiza invertibilidad (ej: $\\begin{pmatrix}1 & 1 \\\\ 1 & 1\\end{pmatrix}$).',
+          'Una matriz admite inversa únicamente cuando todos sus elementos fuera de la diagonal son cero.',
+          'Toda matriz cuadrada de orden $n \\ge 2$ admite inversa sin importar el valor de su determinante.'
+        ],
+        explanation: 'FALSO. Contraejemplo: $A = \\begin{pmatrix}1 & 1 \\\\ 1 & 1\\end{pmatrix}$ tiene diagonal $(1, 1)$ no nula, pero $\\det(A) = 1 - 1 = 0$, por lo tanto no es invertible.'
+      },
+      {
+        id: 13,
+        source: 'Modelo Final',
+        statement: 'Para determinar una única recta en el plano cartesiano es suficiente conocer dos puntos distintos que pertenezcan a ella.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Por axioma de geometría euclidiana, dos puntos distintos $P_1 \\neq P_2$ determinan una y solo una recta en $\\mathbb{R}^2$.'
+      },
+      {
+        id: 14,
+        source: 'Modelo Final',
+        statement: 'Conociendo un punto $P(x_0, y_0)$ y un vector director $\\vec{v} = (a, b) \\neq \\vec{0}$, la ecuación vectorial de la recta puede expresarse como $(x, y) = (x_0, y_0) + t(a, b)$ donde $t \\in \\mathbb{R}$.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Al variar el parámetro real $t$ en todo $\\mathbb{R}$ se generan todos los puntos alineados con $P$ en la dirección de $\\vec{v}$.'
+      },
+      {
+        id: 15,
+        source: 'Modelo Final',
+        statement: 'El módulo de un vector $\\vec{v} = (a, b, c)$ perteneciente a $\\mathbb{R}^3$ se calcula mediante la expresión $|\\vec{v}| = \\sqrt{a^2 + b^2 + c^2}$.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Es la extensión tridimensional del Teorema de Pitágoras para la norma euclídea.'
+      },
+      {
+        id: 16,
+        source: 'Modelo Final',
+        statement: 'El módulo de un vector en $\\mathbb{R}^3$ puede tomar valores negativos dependiendo de los signos de sus componentes.',
+        isTrue: false,
+        correctOption: 2,
+        options: [
+          'El módulo es negativo cuando las tres componentes $(a, b, c)$ son simultáneamente negativas.',
+          'El módulo puede ser negativo solo si el vector apunta en sentido opuesto al eje Z.',
+          'El módulo de un vector es siempre mayor o igual a cero ($|\\vec{v}| \\ge 0$), ya que surge de la raíz cuadrada principal de una suma de cuadrados.'
+        ],
+        explanation: 'FALSO. Como cada componente se eleva al cuadrado ($a^2 \\ge 0, b^2 \\ge 0, c^2 \\ge 0$), su suma es no negativa y su raíz cuadrada principal siempre cumple $|\\vec{v}| \\ge 0$.'
+      },
+      {
+        id: 17,
+        source: 'Modelo Final',
+        statement: 'El límite de una función en un punto $x = a$ existe únicamente cuando la función está definida en dicho punto.',
+        isTrue: false,
+        correctOption: 1,
+        options: [
+          'El límite existe únicamente cuando $f(a) = 0$.',
+          'La existencia del límite en $x = a$ no requiere que la función esté definida en $a$, sino que ambos límites laterales existan, sean finitos y coincidan.',
+          'Una función nunca puede tener límite en un punto que no pertenezca a su dominio.'
+        ],
+        explanation: 'FALSO. Por ejemplo, $f(x) = \\frac{x^2-36}{x-6}$ no está definida en $x = 6$, sin embargo $\\lim_{x \\to 6} f(x) = 12$.'
+      },
+      {
+        id: 18,
+        source: 'Modelo Final',
+        statement: 'Si los límites laterales de una función en un punto existen, son finitos y coinciden, entonces existe el límite de la función en ese punto.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. Es el teorema fundamental de existencia del límite ordinario: $\\lim_{x \\to a^-} f(x) = \\lim_{x \\to a^+} f(x) = L \\iff \\lim_{x \\to a} f(x) = L$.'
+      },
+      {
+        id: 19,
+        source: 'Modelo Final',
+        statement: 'Una discontinuidad esencial se presenta cuando existe un límite finito de la función en un punto, pero el valor de la función en ese punto no existe o es diferente de dicho límite.',
+        isTrue: false,
+        correctOption: 0,
+        options: [
+          'Esa definición corresponde a una discontinuidad evitable (removible); la discontinuidad esencial ocurre cuando no existe límite finito en el punto.',
+          'La discontinuidad es esencial únicamente cuando $f(a) = 0$.',
+          'Una función con límite finito en un punto siempre es continua en dicho punto.'
+        ],
+        explanation: 'FALSO. Cuando existe límite finito pero difiere de $f(a)$ (o no existe $f(a)$), la discontinuidad es EVITABLE, no esencial.'
+      },
+      {
+        id: 20,
+        source: 'Modelo Final',
+        statement: 'Si una función presenta límites laterales finitos pero diferentes en un punto, entonces tiene una discontinuidad de salto finito en dicho punto.',
+        isTrue: true,
+        options: [],
+        explanation: 'VERDADERO. La diferencia $|L^+ - L^-| > 0$ determina la amplitud del salto finito en la gráfica de la función.'
+      }
+    ];
+
+    // =========================================================================
+    // 4. ESTADO GLOBAL DEL SIMULADOR
+    // =========================================================================
+    const appState = {
+      guidedCompleted: new Set(),
+      mirrorProblems: {},
+      theoryAnswers: {}, // id -> { choice: 'V'|'F', optionIdx: number|null, verified: boolean }
+      examActive: false,
+      examTimerInterval: null,
+      examSecondsLeft: 90 * 60,
+      examProblems: [],
+      examTheory: []
+    };
+
+    function updateGlobalProgress() {
+      // Total ítems rastreables: 7 guiados + 20 teóricos = 27
+      const theoryDone = Object.values(appState.theoryAnswers).filter(a => a.verified).length;
+      const totalDone = appState.guidedCompleted.size + theoryDone;
+      const pct = Math.min(100, Math.round((totalDone / 27) * 100));
+      document.getElementById('global-progress-text').textContent = `${pct}%`;
+      document.getElementById('global-progress-bar').style.width = `${pct}%`;
+    }
+
+    // =========================================================================
+    // 5. RENDERIZADO DE GRÁFICOS EN CANVAS HTML5 (EJERCICIOS 2, 4 Y 5)
+    // =========================================================================
+    function drawGridAndAxes(ctx, w, h, xMin, xMax, yMin, yMax) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, w, h);
+
+      const toPxX = x => ((x - xMin) / (xMax - xMin)) * w;
+      const toPxY = y => h - ((y - yMin) / (yMax - yMin)) * h;
+
+      // Cuadrícula suave
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 1;
+      for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+        const px = toPxX(gx);
+        ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+      }
+      for (let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
+        const py = toPxY(gy);
+        ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
+      }
+
+      // Ejes coordenados
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.8;
+      const x0 = toPxX(0);
+      const y0 = toPxY(0);
+      if (x0 >= 0 && x0 <= w) {
+        ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0, h); ctx.stroke();
+      }
+      if (y0 >= 0 && y0 <= h) {
+        ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(w, y0); ctx.stroke();
+      }
+
+      // Números de escala
+      ctx.fillStyle = '#64748B';
+      ctx.font = '10px Inter, sans-serif';
+      for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+        if (gx !== 0) ctx.fillText(gx, toPxX(gx) - 4, Math.min(Math.max(y0 + 12, 12), h - 4));
+      }
+      for (let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
+        if (gy !== 0) ctx.fillText(gy, Math.min(Math.max(x0 + 5, 5), w - 18), toPxY(gy) + 3);
+      }
+
+      return { toPxX, toPxY };
+    }
+
+    function renderExerciseCanvas(canvasId, problem) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      if (problem.id === 2) {
+        // Gráfico de función por tramos en [-4, 4] x [-4, 8]
+        const { b1, f0, m2, c2 } = problem.params;
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, w, h, -4, 4, -4, 8);
+
+        // Rama izquierda: x^2 + b1*x para x < 0 (Azul acero)
+        ctx.strokeStyle = '#1E3A8A';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let x = -4; x <= -0.02; x += 0.04) {
+          const y = x * x + b1 * x;
+          const px = toPxX(x), py = toPxY(y);
+          if (x === -4) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Rama derecha: m2*x + c2 para x > 0 (Esmeralda)
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(toPxX(0.02), toPxY(m2 * 0.02 + c2));
+        ctx.lineTo(toPxX(4), toPxY(m2 * 4 + c2));
+        ctx.stroke();
+
+        // Círculo abierto en (0, 0) para rama izquierda
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#1E3A8A';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(toPxX(0), toPxY(0), 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Círculo abierto en (0, c2) para rama derecha
+        ctx.strokeStyle = '#059669';
+        ctx.beginPath(); ctx.arc(toPxX(0), toPxY(c2), 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Punto sólido aislado f(0) = f0 (Dorado/Ámbar oscuro)
+        ctx.fillStyle = '#D97706';
+        ctx.beginPath(); ctx.arc(toPxX(0), toPxY(f0), 5.5, 0, Math.PI * 2); ctx.fill();
+
+        // Leyenda compacta
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.fillText(`● f(0) = ${f0}`, 10, 18);
+      }
+
+      if (problem.id === 4) {
+        // Triángulo AOB en [-1, 6] x [-1, 6]
+        const { ax, ay, bx, by } = problem.params;
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, w, h, -1, 6, -1, 6);
+
+        // Relleno triángulo
+        ctx.fillStyle = 'rgba(30, 58, 138, 0.12)';
+        ctx.beginPath();
+        ctx.moveTo(toPxX(0), toPxY(0));
+        ctx.lineTo(toPxX(ax), toPxY(ay));
+        ctx.lineTo(toPxX(bx), toPxY(by));
+        ctx.closePath();
+        ctx.fill();
+
+        // Lados
+        ctx.strokeStyle = '#1E3A8A';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Vértices O, A, B
+        const pts = [
+          { x: 0, y: 0, label: 'O(0,0)', color: '#334155' },
+          { x: ax, y: ay, label: `A(${ax},${ay})`, color: '#D97706' },
+          { x: bx, y: by, label: `B(${bx},${by})`, color: '#059669' }
+        ];
+        pts.forEach(pt => {
+          ctx.fillStyle = pt.color;
+          ctx.beginPath(); ctx.arc(toPxX(pt.x), toPxY(pt.y), 5, 0, Math.PI * 2); ctx.fill();
+          ctx.font = 'bold 11px Inter, sans-serif';
+          ctx.fillText(pt.label, toPxX(pt.x) + 6, toPxY(pt.y) - 6);
+        });
+      }
+
+      if (problem.id === 5) {
+        // Recta dada y recta perpendicular en [-6, 8] x [-6, 8]
+        const { px, py, cx, cy, cc, mGiven, mPerp, bPerp } = problem.params;
+        const bGiven = cc / cy;
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, w, h, -6, 8, -6, 8);
+
+        // Recta dada (Gris pizarra punteada)
+        ctx.strokeStyle = '#64748B';
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(toPxX(-6), toPxY(mGiven * (-6) + bGiven));
+        ctx.lineTo(toPxX(8), toPxY(mGiven * 8 + bGiven));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Recta perpendicular (Azul acero sólida)
+        ctx.strokeStyle = '#1E3A8A';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(toPxX(-6), toPxY(mPerp * (-6) + bPerp));
+        ctx.lineTo(toPxX(8), toPxY(mPerp * 8 + bPerp));
+        ctx.stroke();
+
+        // Punto P
+        ctx.fillStyle = '#D97706';
+        ctx.beginPath(); ctx.arc(toPxX(px), toPxY(py), 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.fillText(`P(${px}, ${py})`, toPxX(px) + 7, toPxY(py) - 6);
+      }
+    }
+
+    // =========================================================================
+    // 6. GENERADOR DE TARJETAS INTERACTIVAS DE EJERCICIOS (MODO 1, 2 Y 4)
+    // =========================================================================
+    function buildExerciseCardHTML(problem, prefix, showHintsAndCheck = true) {
+      const uid = `${prefix}-${problem.id}`;
+      const encLabels = {
+        1: 'Encuentro 1: Límites, Continuidad y Complejos',
+        2: 'Encuentro 2: Geometría Analítica y Vectores',
+        3: 'Encuentro 3: Álgebra Matricial'
+      };
+
+      // Campos de respuesta específicos por ejercicio
+      let inputsHTML = '';
+      switch (problem.id) {
+        case 1:
+          inputsHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">a) ¿Qué ocurre en $x = ${problem.params.a}$?</label>
+                <select id="${uid}-state" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm">
+                  <option value="">-- Seleccionar análisis --</option>
+                  <option value="indeterminado">No está definida (Indeterminación 0/0)</option>
+                  <option value="cero">Vale exactamente 0</option>
+                  <option value="infinito">Tiende a infinito (Asíntota vertical)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">b) Valor analítico del límite $\\lim_{x \\to ${problem.params.a}} f(x)$:</label>
+                <input type="text" id="${uid}-limit" placeholder="Ej: 12" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+            </div>
+          `;
+          break;
+
+        case 2:
+          inputsHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-5 flex flex-col items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <canvas id="${uid}-canvas" width="280" height="220" class="rounded-lg border border-slate-300 max-w-full h-auto"></canvas>
+                <span class="text-[11px] text-slate-500 mt-1.5">Gráfica: Azul ($x<0$) | Ámbar ($x=0$) | Verde ($x>0$)</span>
+              </div>
+              <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">1) Imagen $f(0)$:</label>
+                  <input type="text" id="${uid}-f0" placeholder="Valor de f(0)" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">2a) Límite izq. $\\lim_{x \\to 0^-} f(x)$:</label>
+                  <input type="text" id="${uid}-limL" placeholder="Ej: 0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">2b) Límite der. $\\lim_{x \\to 0^+} f(x)$:</label>
+                  <input type="text" id="${uid}-limR" placeholder="Ej: 3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">3) Clasificación en $x = 0$:</label>
+                  <select id="${uid}-class" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+                    <option value="">-- Clasificar --</option>
+                    <option value="continua">Continua en x = 0</option>
+                    <option value="evitable">Discontinuidad Evitable</option>
+                    <option value="salto">Discontinuidad Esencial (Salto Finito)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 3:
+          inputsHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Parte Real $a$:</label>
+                <input type="text" id="${uid}-a" placeholder="Ej: 2" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Parte Imaginaria $b$ (coef. de $i$):</label>
+                <input type="text" id="${uid}-b" placeholder="Ej: 2 o -4" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Módulo $|z|$ (decimal o $\\sqrt{n}$):</label>
+                <input type="text" id="${uid}-mod" placeholder="Ej: 2.83 o sqrt(8)" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+            </div>
+          `;
+          break;
+
+        case 4:
+          inputsHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-5 flex flex-col items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <canvas id="${uid}-canvas" width="260" height="220" class="rounded-lg border border-slate-300 max-w-full h-auto"></canvas>
+                <span class="text-[11px] text-slate-500 mt-1.5">Representación del Triángulo $\\triangle AOB$</span>
+              </div>
+              <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Coordenada $x_A$ (redondeada):</label>
+                  <input type="text" id="${uid}-ax" placeholder="Ej: 3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Coordenada $y_A$ (redondeada):</label>
+                  <input type="text" id="${uid}-ay" placeholder="Ej: 3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Triángulo según lados:</label>
+                  <select id="${uid}-sides" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+                    <option value="">-- Lados --</option>
+                    <option value="equilatero">Equilátero</option>
+                    <option value="isosceles">Isósceles</option>
+                    <option value="escaleno">Escaleno</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Triángulo según ángulos:</label>
+                  <select id="${uid}-angles" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+                    <option value="">-- Ángulos --</option>
+                    <option value="acutangulo">Acutángulo</option>
+                    <option value="rectangulo">Rectángulo</option>
+                    <option value="obtusangulo">Obtusángulo</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Versor paralelo $\\hat{u}_x$:</label>
+                  <input type="text" id="${uid}-ux" placeholder="Ej: 1" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Versor paralelo $\\hat{u}_y$:</label>
+                  <input type="text" id="${uid}-uy" placeholder="Ej: 0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 5:
+          inputsHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-5 flex flex-col items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <canvas id="${uid}-canvas" width="260" height="220" class="rounded-lg border border-slate-300 max-w-full h-auto"></canvas>
+                <span class="text-[11px] text-slate-500 mt-1.5">Punteada: Recta Dato | Azul: Perpendicular $L_1$</span>
+              </div>
+              <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Pendiente dada $m$:</label>
+                  <input type="text" id="${uid}-mg" placeholder="Ej: 4/3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Pendiente perp. $m_{\\perp}$:</label>
+                  <input type="text" id="${uid}-mp" placeholder="Ej: -3/4" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Ordenada al origen $b$:</label>
+                  <input type="text" id="${uid}-bp" placeholder="Ej: 13/2 o 6.5" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 6:
+          inputsHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Producto escalar $\\vec{u} \\cdot \\vec{v}$:</label>
+                <input type="text" id="${uid}-dot" placeholder="Ej: 0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Ángulo $\\alpha$ (en grados):</label>
+                <input type="text" id="${uid}-angle" placeholder="Ej: 90" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Justificación analítica:</label>
+                <select id="${uid}-reason" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <option value="">-- Seleccionar --</option>
+                  <option value="ortogonales">u·v = 0 ⇒ Vectores ortogonales (90°)</option>
+                  <option value="agudo">u·v > 0 ⇒ Ángulo agudo (< 90°)</option>
+                  <option value="obtuso">u·v < 0 ⇒ Ángulo obtuso (> 90°)</option>
+                </select>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 7:
+          inputsHTML = `
+            <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span class="font-bold text-sm text-naval-deep">$A = $</span>
+              <div class="grid grid-cols-2 gap-2.5 bg-white p-3 rounded-xl border-2 border-naval-steel shadow-inner">
+                <input type="text" id="${uid}-a11" placeholder="a₁₁" class="w-24 text-center rounded-lg border border-slate-300 px-2 py-2 text-sm font-mono">
+                <input type="text" id="${uid}-a12" placeholder="a₁₂" class="w-24 text-center rounded-lg border border-slate-300 px-2 py-2 text-sm font-mono">
+                <input type="text" id="${uid}-a21" placeholder="a₂₁" class="w-24 text-center rounded-lg border border-slate-300 px-2 py-2 text-sm font-mono">
+                <input type="text" id="${uid}-a22" placeholder="a₂₂ (ej: -1/3)" class="w-24 text-center rounded-lg border border-slate-300 px-2 py-2 text-sm font-mono">
+              </div>
+              <span class="text-xs text-slate-500">Ingresá los 4 elementos de la matriz $A_{2\\times 2}$ (acepta fracciones como <code class="font-mono">-1/3</code>).</span>
+            </div>
+          `;
+          break;
+      }
+
+      const actionsHTML = showHintsAndCheck ? `
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="toggleHint('${uid}', 0)" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition cursor-pointer">
+              💡 Pista 1
+            </button>
+            <button onclick="toggleHint('${uid}', 1)" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition cursor-pointer">
+              💡 Pista 2 (Paso Algebraico)
+            </button>
+            ${prefix === 'mirror' ? `
+              <button onclick="regenerateSingleMirror(${problem.id})" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                🔄 Cambiar Números
+              </button>
+            ` : ''}
+          </div>
+          <button onclick="verifyExercise('${prefix}', ${problem.id})" class="px-5 py-2 rounded-xl bg-naval-steel hover:bg-blue-800 text-white text-xs sm:text-sm font-bold shadow transition cursor-pointer">
+            Verificar Respuesta
+          </button>
+        </div>
+
+        <!-- Caja de Pistas -->
+        <div id="${uid}-hint-box" class="hidden mt-3 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-xs sm:text-sm text-amber-950 space-y-1"></div>
+
+        <!-- Caja de Feedback / Resolución -->
+        <div id="${uid}-feedback" class="hidden mt-3 p-4 rounded-xl border text-xs sm:text-sm space-y-2"></div>
+      ` : '';
+
+      return `
+        <article data-encounter="${problem.encounter}" class="guided-card bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 hover:border-slate-300 transition">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-naval-deep text-naval-gold font-extrabold text-sm flex items-center justify-center shadow-sm">
+                ${problem.id}
+              </span>
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-naval-steel block">${encLabels[problem.encounter]}</span>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900">${problem.title}</h3>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="${uid}-badge" class="hidden px-2.5 py-1 rounded-full text-xs font-bold"></span>
+              <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-semibold border border-slate-200">${problem.points}</span>
+            </div>
+          </div>
+
+          <div class="text-sm sm:text-base text-slate-800 leading-relaxed mb-5">
+            ${problem.statement}
+          </div>
+
+          ${inputsHTML}
+          ${actionsHTML}
+        </article>
+      `;
+    }
+
+    // =========================================================================
+    // 7. EVALUACIÓN DE EJERCICIOS PRÁCTICOS (COMPARTIDA PARA MODOS 1, 2 Y 4)
+    // =========================================================================
+    function evaluateExerciseInputs(problem, prefix) {
+      const uid = `${prefix}-${problem.id}`;
+      const exp = problem.expected;
+
+      switch (problem.id) {
+        case 1: {
+          const st = document.getElementById(`${uid}-state`)?.value || '';
+          const lim = document.getElementById(`${uid}-limit`)?.value || '';
+          const okSt = st === exp.state;
+          const okLim = isClose(lim, exp.limit, 0.05);
+          return {
+            isCorrect: okSt && okLim,
+            ratio: (okSt ? 0.5 : 0) + (okLim ? 0.5 : 0),
+            detail: !okSt && !okLim
+              ? 'Revisá tanto el comportamiento puntual en x = a (indeterminación 0/0) como la simplificación algebraica del límite.'
+              : !okSt
+                ? 'El valor del límite es correcto, pero recordá que al reemplazar x = a directamente obtenés una indeterminación 0/0.'
+                : !okLim
+                  ? `El análisis puntual es correcto, pero el límite al simplificar $(x-${problem.params.a})$ vale $${exp.limit}$.`
+                  : '¡Excelente! Identificaste correctamente la indeterminación y salvaste el límite mediante diferencia de cuadrados.'
+          };
+        }
+
+        case 2: {
+          const f0 = document.getElementById(`${uid}-f0`)?.value || '';
+          const limL = document.getElementById(`${uid}-limL`)?.value || '';
+          const limR = document.getElementById(`${uid}-limR`)?.value || '';
+          const cls = document.getElementById(`${uid}-class`)?.value || '';
+          const okF0 = isClose(f0, exp.f0, 0.05);
+          const okL = isClose(limL, exp.limLeft, 0.05);
+          const okR = isClose(limR, exp.limRight, 0.05);
+          const okC = cls === exp.classification;
+          const scoreParts = (okF0 ? 1 : 0) + (okL ? 1 : 0) + (okR ? 1 : 0) + (okC ? 1 : 0);
+          return {
+            isCorrect: scoreParts === 4,
+            ratio: scoreParts / 4,
+            detail: scoreParts === 4
+              ? '¡Análisis impecable! Verificaste correctamente la imagen, ambos límites laterales y la clasificación de continuidad.'
+              : `Completaste correctamente ${scoreParts} de 4 pasos. Revisá: $f(0)=${exp.f0}$, $\\lim_{x\\to 0^-}f(x)=${exp.limLeft}$ y $\\lim_{x\\to 0^+}f(x)=${exp.limRight}$.`
+          };
+        }
+
+        case 3: {
+          const a = document.getElementById(`${uid}-a`)?.value || '';
+          const b = document.getElementById(`${uid}-b`)?.value || '';
+          const mod = document.getElementById(`${uid}-mod`)?.value || '';
+          const okA = isClose(a, exp.a, 0.05);
+          const okB = isClose(b, exp.b, 0.05);
+          const okM = isClose(mod, exp.mod, 0.08);
+          const count = (okA ? 1 : 0) + (okB ? 1 : 0) + (okM ? 1 : 0);
+          return {
+            isCorrect: count === 3,
+            ratio: count / 3,
+            detail: count === 3
+              ? '¡Perfecto! Multiplicaste correctamente por el complejo conjugado y calculaste el módulo.'
+              : `Acertaste ${count}/3 valores. Verificá los signos al multiplicar por el conjugado y recordá $|z|=\\sqrt{a^2+b^2}$.`
+          };
+        }
+
+        case 4: {
+          const ax = document.getElementById(`${uid}-ax`)?.value || '';
+          const ay = document.getElementById(`${uid}-ay`)?.value || '';
+          const sides = document.getElementById(`${uid}-sides`)?.value || '';
+          const angles = document.getElementById(`${uid}-angles`)?.value || '';
+          const ux = document.getElementById(`${uid}-ux`)?.value || '';
+          const uy = document.getElementById(`${uid}-uy`)?.value || '';
+          const okCoord = isClose(ax, exp.ax, 0.12) && isClose(ay, exp.ay, 0.12);
+          const okTri = sides === exp.sides && angles === exp.angles;
+          const okVec = isClose(ux, exp.ux, 0.06) && isClose(uy, exp.uy, 0.06);
+          const count = (okCoord ? 1 : 0) + (okTri ? 1 : 0) + (okVec ? 1 : 0);
+          return {
+            isCorrect: count === 3,
+            ratio: count / 3,
+            detail: count === 3
+              ? '¡Muy bien! Dominás la conversión polar-cartesiana, la clasificación geométrica y el cálculo de versores.'
+              : `Lograste ${count}/3 bloques del ejercicio. Revisá las coordenadas $A(${exp.ax},${exp.ay})$, la clasificación del triángulo y el vector unitario.`
+          };
+        }
+
+        case 5: {
+          const mg = document.getElementById(`${uid}-mg`)?.value || '';
+          const mp = document.getElementById(`${uid}-mp`)?.value || '';
+          const bp = document.getElementById(`${uid}-bp`)?.value || '';
+          const okMg = isClose(mg, exp.mGiven, 0.05);
+          const okMp = isClose(mp, exp.mPerp, 0.05);
+          const okBp = isClose(bp, exp.bPerp, 0.08);
+          const count = (okMg ? 1 : 0) + (okMp ? 1 : 0) + (okBp ? 1 : 0);
+          return {
+            isCorrect: count === 3,
+            ratio: count / 3,
+            detail: count === 3
+              ? '¡Excelente! Despejaste la pendiente, invertiste y cambiaste de signo para la perpendicular y hallaste la ordenada.'
+              : `Acertaste ${count}/3 parámetros. Recordá que $m_{\\perp} = -1/m$ y luego reemplazás $P(${problem.params.px}, ${problem.params.py})$.`
+          };
+        }
+
+        case 6: {
+          const dot = document.getElementById(`${uid}-dot`)?.value || '';
+          const angle = document.getElementById(`${uid}-angle`)?.value || '';
+          const reason = document.getElementById(`${uid}-reason`)?.value || '';
+          const okDot = isClose(dot, exp.dot, 0.05);
+          const okAng = isClose(angle, exp.angle, 0.5);
+          const okRea = reason === exp.reason;
+          const count = (okDot ? 1 : 0) + (okAng ? 1 : 0) + (okRea ? 1 : 0);
+          return {
+            isCorrect: count === 3,
+            ratio: count / 3,
+            detail: count === 3
+              ? '¡Correcto! Calculaste con precisión el producto escalar y justificaste el ángulo entre los vectores.'
+              : `Acertaste ${count}/3 ítems. Revisá la multiplicación componente a componente $\\vec{u}\\cdot\\vec{v} = u_x v_x + u_y v_y$.`
+          };
+        }
+
+        case 7: {
+          const a11 = document.getElementById(`${uid}-a11`)?.value || '';
+          const a12 = document.getElementById(`${uid}-a12`)?.value || '';
+          const a21 = document.getElementById(`${uid}-a21`)?.value || '';
+          const a22 = document.getElementById(`${uid}-a22`)?.value || '';
+          const ok11 = isClose(a11, exp.a11, 0.05);
+          const ok12 = isClose(a12, exp.a12, 0.05);
+          const ok21 = isClose(a21, exp.a21, 0.05);
+          const ok22 = isClose(a22, exp.a22, 0.05);
+          const count = (ok11 ? 1 : 0) + (ok12 ? 1 : 0) + (ok21 ? 1 : 0) + (ok22 ? 1 : 0);
+          return {
+            isCorrect: count === 4,
+            ratio: count / 4,
+            detail: count === 4
+              ? '¡Impecable! Despejaste correctamente $A = kB - I$ operando elemento a elemento.'
+              : `Acertaste ${count}/4 elementos de la matriz $A$. Recordá restar $1$ solo en la diagonal principal ($a_{11}$ y $a_{22}$).`
+          };
+        }
+      }
+    }
+
+    // =========================================================================
+    // 8. CONTROLADORES DE MODO 1 (GUIADO) Y MODO 2 (ESPEJO INFINITO)
+    // =========================================================================
+    const guidedProblems = [1, 2, 3, 4, 5, 6, 7].map(id => generateProblemData(id, true));
+
+    function initGuidedMode() {
+      const container = document.getElementById('guided-exercises-container');
+      container.innerHTML = guidedProblems.map(p => buildExerciseCardHTML(p, 'guided', true)).join('');
+      renderKaTeXInElement(container);
+      guidedProblems.forEach(p => {
+        if ([2, 4, 5].includes(p.id)) renderExerciseCanvas(`guided-${p.id}-canvas`, p);
+      });
+    }
+
+    function filterEncounter(enc) {
+      document.querySelectorAll('.enc-filter').forEach(btn => {
+        btn.className = 'enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+      });
+      const activeBtn = document.getElementById(`enc-btn-${enc}`);
+      if (activeBtn) {
+        activeBtn.className = 'enc-filter px-3.5 py-2 rounded-xl text-xs font-bold bg-naval-steel text-white shadow-sm cursor-pointer';
+      }
+      document.querySelectorAll('#guided-exercises-container .guided-card').forEach(card => {
+        if (enc === 'all' || card.dataset.encounter === String(enc)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function regenerateAllMirrors() {
+      const container = document.getElementById('mirror-exercises-container');
+      [1, 2, 3, 4, 5, 6, 7].forEach(id => {
+        appState.mirrorProblems[id] = generateProblemData(id, false);
+      });
+      container.innerHTML = [1, 2, 3, 4, 5, 6, 7].map(id => buildExerciseCardHTML(appState.mirrorProblems[id], 'mirror', true)).join('');
+      renderKaTeXInElement(container);
+      [2, 4, 5].forEach(id => renderExerciseCanvas(`mirror-${id}-canvas`, appState.mirrorProblems[id]));
+      showToast('Nueva batería de 7 ejercicios espejo generada.', 'info');
+    }
+
+    function regenerateSingleMirror(id) {
+      appState.mirrorProblems[id] = generateProblemData(id, false);
+      const oldCard = document.getElementById(`mirror-${id}-badge`)?.closest('article');
+      if (oldCard) {
+        const temp = document.createElement('div');
+        temp.innerHTML = buildExerciseCardHTML(appState.mirrorProblems[id], 'mirror', true);
+        const newCard = temp.firstElementChild;
+        oldCard.replaceWith(newCard);
+        renderKaTeXInElement(newCard);
+        if ([2, 4, 5].includes(id)) renderExerciseCanvas(`mirror-${id}-canvas`, appState.mirrorProblems[id]);
+      }
+    }
+
+    function toggleHint(uid, idx) {
+      const [prefix, idStr] = uid.split('-');
+      const id = parseInt(idStr, 10);
+      const prob = prefix === 'guided' ? guidedProblems[id - 1] : appState.mirrorProblems[id];
+      const box = document.getElementById(`${uid}-hint-box`);
+      box.classList.remove('hidden');
+      box.innerHTML = `<p><strong>Pista ${idx + 1}:</strong> ${prob.hints[idx]}</p>`;
+      renderKaTeXInElement(box);
+    }
+
+    function verifyExercise(prefix, id) {
+      const uid = `${prefix}-${id}`;
+      const prob = prefix === 'guided' ? guidedProblems[id - 1] : appState.mirrorProblems[id];
+      const res = evaluateExerciseInputs(prob, prefix);
+      const fb = document.getElementById(`${uid}-feedback`);
+      const badge = document.getElementById(`${uid}-badge`);
+
+      fb.classList.remove('hidden');
+      badge.classList.remove('hidden');
+
+      if (res.isCorrect) {
+        fb.className = 'mt-3 p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-950 text-xs sm:text-sm space-y-2 animate-fade';
+        fb.innerHTML = `
+          <div class="font-bold text-emerald-800 flex items-center gap-1.5">✅ ¡Respuesta Correcta!</div>
+          <p>${res.detail}</p>
+          <div class="pt-2 border-t border-emerald-200/80 text-slate-800">${prob.solutionHTML}</div>
+        `;
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+        badge.textContent = '✓ Resuelto';
+        if (prefix === 'guided') {
+          appState.guidedCompleted.add(id);
+          updateGlobalProgress();
+        }
+        showToast(`Ejercicio ${id} verificado correctamente.`, 'success');
+      } else {
+        fb.className = 'mt-3 p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-950 text-xs sm:text-sm space-y-2 animate-fade';
+        fb.innerHTML = `
+          <div class="font-bold text-rose-800 flex items-center gap-1.5">⚠️ Revisar Procedimiento</div>
+          <p>${res.detail}</p>
+          <details class="pt-2 border-t border-rose-200/80 cursor-pointer">
+            <summary class="font-semibold text-rose-900">Ver desarrollo analítico completo</summary>
+            <div class="mt-2 text-slate-800">${prob.solutionHTML}</div>
+          </details>
+        `;
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+        badge.textContent = '✗ Revisar';
+        showToast(`Revisá los pasos del Ejercicio ${id}.`, 'error');
+      }
+      renderKaTeXInElement(fb);
+    }
+
+    // =========================================================================
+    // 9. MODO 3: BLOQUE TEÓRICO V/F CON JUSTIFICACIÓN OBLIGATORIA EN FALSO
+    // =========================================================================
+    function initTheoryMode() {
+      const container = document.getElementById('theory-container');
+      container.innerHTML = THEORY_QUESTIONS.map(q => {
+        const optsHTML = q.options.map((opt, idx) => `
+          <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs sm:text-sm">
+            <input type="radio" name="theory-opt-${q.id}" value="${idx}" class="mt-1 accent-naval-steel">
+            <span>${opt}</span>
+          </label>
+        `).join('');
+
+        return `
+          <div id="theory-card-${q.id}" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <span class="w-7 h-7 rounded-lg bg-naval-slate text-naval-gold font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${q.id}</span>
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">${q.source}</span>
+                  <p class="text-sm sm:text-base font-medium text-slate-900 mt-1.5 leading-relaxed">${q.statement}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <button onclick="selectTheoryVF(${q.id}, 'V')" id="btn-v-${q.id}" class="px-4 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-emerald-50 font-bold text-xs sm:text-sm text-slate-800 transition cursor-pointer">
+                Verdadero (V)
+              </button>
+              <button onclick="selectTheoryVF(${q.id}, 'F')" id="btn-f-${q.id}" class="px-4 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-rose-50 font-bold text-xs sm:text-sm text-slate-800 transition cursor-pointer">
+                Falso (F)
+              </button>
+            </div>
+
+            <!-- Panel de justificación cuando selecciona Falso -->
+            <div id="theory-false-box-${q.id}" class="hidden mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <p class="text-xs font-bold text-naval-deep uppercase tracking-wide">Consigna del examen: Seleccioná la formulación o justificación correcta:</p>
+              <div class="space-y-2">${optsHTML}</div>
+              <button onclick="verifyTheoryFalse(${q.id})" class="mt-2 px-4 py-2 rounded-xl bg-naval-steel hover:bg-blue-800 text-white text-xs font-bold shadow cursor-pointer">
+                Confirmar Justificación
+              </button>
+            </div>
+
+            <!-- Feedback Teórico -->
+            <div id="theory-fb-${q.id}" class="hidden mt-3 p-3.5 rounded-xl border text-xs sm:text-sm"></div>
+          </div>
+        `;
+      }).join('');
+      renderKaTeXInElement(container);
+    }
+
+    function selectTheoryVF(id, choice) {
+      const q = THEORY_QUESTIONS.find(item => item.id === id);
+      const btnV = document.getElementById(`btn-v-${id}`);
+      const btnF = document.getElementById(`btn-f-${id}`);
+      const falseBox = document.getElementById(`theory-false-box-${id}`);
+      const fb = document.getElementById(`theory-fb-${id}`);
+
+      btnV.className = choice === 'V'
+        ? 'px-4 py-2 rounded-xl border-2 border-naval-steel bg-blue-50 font-bold text-xs sm:text-sm text-naval-steel cursor-pointer'
+        : 'px-4 py-2 rounded-xl border border-slate-300 bg-slate-50 font-bold text-xs sm:text-sm text-slate-600 cursor-pointer';
+      btnF.className = choice === 'F'
+        ? 'px-4 py-2 rounded-xl border-2 border-naval-steel bg-blue-50 font-bold text-xs sm:text-sm text-naval-steel cursor-pointer'
+        : 'px-4 py-2 rounded-xl border border-slate-300 bg-slate-50 font-bold text-xs sm:text-sm text-slate-600 cursor-pointer';
+
+      if (choice === 'F' && !q.isTrue) {
+        // Es falsa y eligió F: desplegar opciones de justificación
+        fb.classList.add('hidden');
+        falseBox.classList.remove('hidden');
+        renderKaTeXInElement(falseBox);
+        return;
+      }
+
+      if (choice === 'F' && q.isTrue) {
+        // Era verdadera pero marcó Falsa
+        falseBox.classList.add('hidden');
+        fb.classList.remove('hidden');
+        fb.className = 'mt-3 p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-950 text-xs sm:text-sm animate-fade';
+        fb.innerHTML = `<strong>✗ Incorrecto.</strong> La proposición en realidad es <strong>Verdadera</strong>. ${q.explanation}`;
+        appState.theoryAnswers[id] = { verified: true, correct: false };
+        updateTheoryScore();
+        renderKaTeXInElement(fb);
+        return;
+      }
+
+      // Eligió V
+      falseBox.classList.add('hidden');
+      fb.classList.remove('hidden');
+      if (q.isTrue) {
+        fb.className = 'mt-3 p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-950 text-xs sm:text-sm animate-fade';
+        fb.innerHTML = `<strong>✓ ¡Correcto!</strong> ${q.explanation}`;
+        appState.theoryAnswers[id] = { verified: true, correct: true };
+      } else {
+        fb.className = 'mt-3 p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-950 text-xs sm:text-sm animate-fade';
+        fb.innerHTML = `<strong>✗ Incorrecto.</strong> La afirmación es <strong>Falsa</strong>. ${q.explanation}`;
+        appState.theoryAnswers[id] = { verified: true, correct: false };
+      }
+      updateTheoryScore();
+      renderKaTeXInElement(fb);
+    }
+
+    function verifyTheoryFalse(id) {
+      const q = THEORY_QUESTIONS.find(item => item.id === id);
+      const selected = document.querySelector(`input[name="theory-opt-${id}"]:checked`);
+      if (!selected) {
+        showToast('Seleccioná una de las opciones de justificación antes de confirmar.', 'info');
+        return;
+      }
+      const optIdx = parseInt(selected.value, 10);
+      const fb = document.getElementById(`theory-fb-${id}`);
+      fb.classList.remove('hidden');
+
+      if (optIdx === q.correctOption) {
+        fb.className = 'mt-3 p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-950 text-xs sm:text-sm animate-fade';
+        fb.innerHTML = `<strong>✓ ¡Excelente!</strong> Identificaste que es Falsa y elegiste su formulación correcta. ${q.explanation}`;
+        appState.theoryAnswers[id] = { verified: true, correct: true };
+      } else {
+        fb.className = 'mt-3 p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-950 text-xs sm:text-sm animate-fade';
+        fb.innerHTML = `<strong>✗ Justificación incompleta/incorrecta.</strong> ${q.explanation}`;
+        appState.theoryAnswers[id] = { verified: true, correct: false };
+      }
+      updateTheoryScore();
+      renderKaTeXInElement(fb);
+    }
+
+    function updateTheoryScore() {
+      const correctCount = Object.values(appState.theoryAnswers).filter(a => a.correct).length;
+      document.getElementById('theory-score-badge').textContent = `${correctCount} / 20`;
+      updateGlobalProgress();
+    }
+
+    function resetTheory() {
+      appState.theoryAnswers = {};
+      initTheoryMode();
+      updateTheoryScore();
+      showToast('Bloque teórico reiniciado.', 'info');
+    }
+
+    // =========================================================================
+    // 10. MODO 4: SIMULACRO CRONOMETRADO TIPO EXAMEN (10 PUNTOS OFICIALES)
+    // =========================================================================
+    function startTimedExam() {
+      appState.examActive = true;
+      appState.examSecondsLeft = 90 * 60;
+      // Generar 7 ejercicios nuevos (variantes) + 10 preguntas teóricas mezcladas
+      appState.examProblems = [1, 2, 3, 4, 5, 6, 7].map(id => generateProblemData(id, false));
+      const shuffledTheory = [...THEORY_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
+      appState.examTheory = shuffledTheory;
+
+      document.getElementById('exam-intro-card').classList.add('hidden');
+      document.getElementById('exam-report-card').classList.add('hidden');
+      document.getElementById('exam-active-area').classList.remove('hidden');
+
+      const container = document.getElementById('exam-questions-container');
+      let html = `
+        <div class="bg-naval-slate text-white px-5 py-3 rounded-xl font-bold text-sm uppercase tracking-wider">
+          Parte I — Ejercicios Prácticos (5.00 Puntos)
+        </div>
+      `;
+      html += appState.examProblems.map(p => buildExerciseCardHTML(p, 'exam', false)).join('');
+
+      html += `
+        <div class="bg-naval-slate text-white px-5 py-3 rounded-xl font-bold text-sm uppercase tracking-wider mt-8">
+          Parte II — Teoría Conceptual V/F (10 ítems × 0.50 pts = 5.00 Puntos)
+        </div>
+      `;
+
+      html += appState.examTheory.map((q, index) => {
+        const optsHTML = q.options.map((opt, idx) => `
+          <option value="${idx}">${opt}</option>
+        `).join('');
+
+        return `
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm sm:text-base font-medium text-slate-900">
+                <strong class="text-naval-steel">${index + 1}.</strong> ${q.statement}
+              </p>
+              <span class="px-2.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-xs shrink-0">0.50 pts</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div class="sm:col-span-4">
+                <select id="exam-th-vf-${index}" onchange="toggleExamFalseSelect(${index})" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold">
+                  <option value="">-- Seleccionar V / F --</option>
+                  <option value="V">Verdadero (V)</option>
+                  <option value="F">Falso (F)</option>
+                </select>
+              </div>
+              <div id="exam-th-just-wrap-${index}" class="sm:col-span-8 hidden">
+                <select id="exam-th-just-${index}" class="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-3 py-2 text-xs sm:text-sm">
+                  <option value="">-- Seleccionar formulación correcta (obligatorio si es F) --</option>
+                  ${optsHTML}
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+      renderKaTeXInElement(container);
+      appState.examProblems.forEach(p => {
+        if ([2, 4, 5].includes(p.id)) renderExerciseCanvas(`exam-${p.id}-canvas`, p);
+      });
+
+      clearInterval(appState.examTimerInterval);
+      appState.examTimerInterval = setInterval(() => {
+        appState.examSecondsLeft--;
+        const mins = Math.floor(appState.examSecondsLeft / 60);
+        const secs = appState.examSecondsLeft % 60;
+        document.getElementById('exam-timer').textContent =
+          `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        if (appState.examSecondsLeft <= 0) {
+          finishTimedExam();
+        }
+      }, 1000);
+    }
+
+    function toggleExamFalseSelect(index) {
+      const val = document.getElementById(`exam-th-vf-${index}`).value;
+      const wrap = document.getElementById(`exam-th-just-wrap-${index}`);
+      if (val === 'F') wrap.classList.remove('hidden');
+      else wrap.classList.add('hidden');
+    }
+
+    function finishTimedExam() {
+      clearInterval(appState.examTimerInterval);
+      // Grilla oficial exacta del examen final:
+      // 1: 0.5, 2: 1.5 (1 + 0.5), 3: 0.5 (0.25 + 0.25), 4: 0.5, 5: 0.5, 6: 1.0 (0.5 + 0.5), 7: 0.5 -> Total Práctica = 5.0
+      const weights = { 1: 0.5, 2: 1.5, 3: 0.5, 4: 0.5, 5: 0.5, 6: 1.0, 7: 0.5 };
+      let practiceScore = 0;
+      const weakUnits = [];
+
+      appState.examProblems.forEach(p => {
+        const res = evaluateExerciseInputs(p, 'exam');
+        const earned = res.ratio * weights[p.id];
+        practiceScore += earned;
+        if (res.ratio < 0.7) {
+          weakUnits.push(`Ej. ${p.id} (${p.title})`);
+        }
+      });
+
+      let theoryScore = 0;
+      appState.examTheory.forEach((q, idx) => {
+        const vf = document.getElementById(`exam-th-vf-${idx}`).value;
+        if (q.isTrue && vf === 'V') {
+          theoryScore += 0.5;
+        } else if (!q.isTrue && vf === 'F') {
+          const justVal = document.getElementById(`exam-th-just-${idx}`).value;
+          if (justVal !== '' && parseInt(justVal, 10) === q.correctOption) {
+            theoryScore += 0.5;
+          } else {
+            // Medio puntaje si detectó Falso pero falló la formulación
+            theoryScore += 0.25;
+          }
+        }
+      });
+
+      const totalScore = Math.round((practiceScore + theoryScore) * 100) / 100;
+      const passed = totalScore >= 6.0;
+
+      const report = document.getElementById('exam-report-card');
+      report.classList.remove('hidden');
+      report.className = `rounded-2xl p-6 shadow-xl border-2 animate-fade ${
+        passed ? 'bg-emerald-50 border-emerald-500' : 'bg-amber-50 border-amber-500'
+      }`;
+
+      report.innerHTML = `
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-widest ${passed ? 'text-emerald-700' : 'text-amber-700'}">
+              Boletín Oficial de Rendimiento — Simulacro Final
+            </span>
+            <h3 class="text-2xl font-extrabold text-naval-deep mt-1">
+              Calificación Final: ${totalScore.toFixed(2)} / 10.00 puntos
+            </h3>
+          </div>
+          <div class="px-5 py-2.5 rounded-xl font-extrabold text-sm text-white shadow ${passed ? 'bg-emerald-600' : 'bg-rose-600'}">
+            ${passed ? 'APROBADO — LISTO PARA EL FINAL' : 'REQUIERE REFUERZO ANTES DE RENDIR'}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold">Puntaje Práctica (máx. 5.00)</span>
+            <p class="text-xl font-extrabold text-naval-steel mt-0.5">${practiceScore.toFixed(2)} pts</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold">Puntaje Teoría V/F (máx. 5.00)</span>
+            <p class="text-xl font-extrabold text-naval-steel mt-0.5">${theoryScore.toFixed(2)} pts</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold">Diagnóstico Pedagógico</span>
+            <p class="text-xs font-semibold text-slate-700 mt-1">
+              ${weakUnits.length === 0
+                ? 'Excelente dominio transversal en todas las unidades evaluadas.'
+                : 'Reforzar en Modo 1/2: ' + weakUnits.join(', ')}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button onclick="startTimedExam()" class="px-5 py-2.5 rounded-xl bg-naval-deep hover:bg-naval-slate text-naval-gold font-bold text-xs sm:text-sm cursor-pointer">
+            Rendir Nuevo Simulacro con Otros Números
+          </button>
+        </div>
+      `;
+      report.scrollIntoView({ behavior: 'smooth' });
+      showToast('Simulacro finalizado. Revisá tu boletín de calificación.', 'info');
+    }
+
+    // =========================================================================
+    // 11. NAVEGACIÓN ENTRE PESTAÑAS Y DESCARGA DEL ARCHIVO HTML AUTÓNOMO
+    // =========================================================================
+    // 11. NAVEGACIÓN ENTRE PESTAÑAS
+    // =========================================================================
+    function switchMode(modeNum) {
+      [1, 2, 3, 4].forEach(n => {
+        const sec = document.getElementById(`mode-${n}`);
+        const btn = document.getElementById(`tab-btn-${n}`);
+        if (n === modeNum) {
+          sec.classList.remove('hidden');
+          btn.className = 'tab-active px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'tab-inactive px-3 py-3 rounded-t-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer';
+        }
+      });
+
+      if (modeNum === 2 && Object.keys(appState.mirrorProblems).length === 0) {
+        regenerateAllMirrors();
+      }
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      initGuidedMode();
+      initTheoryMode();
+      updateGlobalProgress();
+    });
+  </script>
+</body>
+</html>
